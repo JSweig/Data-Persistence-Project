@@ -11,20 +11,22 @@ public class MainManager : MonoBehaviour
     public Rigidbody Ball;
 
     public Text ScoreText;
-    public GameObject GameOverText;
+    public Text HighScore;
+    public GameObject GameOverScreen;
     
     private bool m_Started = false;
     private int m_Points;
     
-    private bool m_GameOver = false;
-
     
     // Start is called before the first frame update
     void Start()
     {
+        GameOverScreen.SetActive(false);
         const float step = 0.6f;
         int perLine = Mathf.FloorToInt(4.0f / step);
-        
+        HighScore.text = $"Best Score:{DataManager.Instance.playerNames[0]}: {DataManager.Instance.highScores[0]}";
+
+
         int[] pointCountArray = new [] {1,1,2,2,5,5};
         for (int i = 0; i < LineCount; ++i)
         {
@@ -53,24 +55,57 @@ public class MainManager : MonoBehaviour
                 Ball.AddForce(forceDir * 2.0f, ForceMode.VelocityChange);
             }
         }
-        else if (m_GameOver)
-        {
-            if (Input.GetKeyDown(KeyCode.Space))
-            {
-                SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex);
-            }
-        }
+        
     }
 
     void AddPoint(int point)
     {
         m_Points += point;
         ScoreText.text = $"Score : {m_Points}";
+        if (m_Points > DataManager.Instance.highScores[0])
+        {
+            HighScore.text = $"Best Score: {DataManager.Instance.currentPlayer}: {m_Points}";
+        }
     }
 
     public void GameOver()
     {
-        m_GameOver = true;
-        GameOverText.SetActive(true);
+        GameOverScreen.SetActive(true);
+        if(m_Points > DataManager.Instance.highScores[0])
+        {
+            if (DataManager.Instance.highScores[1]!= 0)
+            {
+                DataManager.Instance.highScores[1] = DataManager.Instance.highScores[0];
+                DataManager.Instance.playerNames[1] = DataManager.Instance.playerNames[0];
+
+                DataManager.Instance.highScores[2] = DataManager.Instance.highScores[1];
+                DataManager.Instance.playerNames[2] = DataManager.Instance.playerNames[1];
+
+            }
+
+            if (DataManager.Instance.highScores[2] != 0)
+            {
+                DataManager.Instance.highScores[2] = DataManager.Instance.highScores[1];
+                DataManager.Instance.playerNames[2] = DataManager.Instance.playerNames[1];
+            }
+            DataManager.Instance.highScores[0] = m_Points;
+            DataManager.Instance.playerNames[0] = DataManager.Instance.currentPlayer;
+
+        } else if(m_Points > DataManager.Instance.highScores[1])
+        {
+            if (DataManager.Instance.highScores[2] != 0)
+            {
+                DataManager.Instance.highScores[2] = DataManager.Instance.highScores[1];
+                DataManager.Instance.playerNames[2] = DataManager.Instance.playerNames[1];
+            }
+
+            DataManager.Instance.highScores[1] = m_Points;
+            DataManager.Instance.playerNames[1] = DataManager.Instance.currentPlayer;
+        }
+        else if (m_Points > DataManager.Instance.highScores[2])
+        {
+            DataManager.Instance.highScores[2] = m_Points;
+            DataManager.Instance.playerNames[2] = DataManager.Instance.currentPlayer;
+        }
     }
 }
